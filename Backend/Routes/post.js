@@ -47,15 +47,14 @@ postRouter.put("/update",userMiddleware,async (req,res)=>{
     }
 })
 
-postRouter.delete("/delete",userMiddleware,async (req,res)=>{
+postRouter.delete("/delete", userMiddleware, async (req, res) => {
     const userId = req.userId;
     const { postid } = req.body;
 
-    try{
+    try {
+        const post = await postModel.findById(postid);
 
-        const post = await postModel.findById({postid});
-
-        if(!post){
+        if (!post) {
             return res.status(404).json({ msg: "Post not found" });
         }
 
@@ -63,22 +62,34 @@ postRouter.delete("/delete",userMiddleware,async (req,res)=>{
             return res.status(403).json({ msg: "You are not authorized to delete this blog" });
         }
 
-        await postModel.findOneAndDelete({_id: postid});
+        await postModel.findOneAndDelete({ _id: postid });
 
         res.json({
             msg: 'Blog deleted successfully'
         });
-    }catch(error){
+    } catch (error) {
         console.log(error)
-        res.status(500).json({msg: 'Something went wrong'})
+        res.status(500).json({ msg: 'Something went wrong' })
     }
-})
+});
 
-postRouter.get("/preview",async (req,res)=>{
-    const blogs = await postModel.find({});
+postRouter.get("/blogs", userMiddleware, async function(req, res) {
+    const userId = req.userId;
 
-    res.json({ blogs })
-})
+    try {
+        const blogs = await postModel.find({ creatorId: userId });
+
+        res.json({
+            msg: 'Fetched all posts created by the user',
+            blogs
+        });
+    } catch (error) {
+        res.status(500).json({
+            msg: 'Error while fetching posts',
+            error: error.message
+        });
+    }
+});
 
 module.exports = {
     postRouter

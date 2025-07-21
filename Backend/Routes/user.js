@@ -82,7 +82,7 @@ userRouter.post("/signin",async function(req,res){
             },
             JWT_USER_SECRET
         );  
-        res.json({token: token})
+        res.json({token: token, firstName: user.firstName})
     }else{
         res.json({
             msg: 'Incorrect login credentials',
@@ -91,21 +91,13 @@ userRouter.post("/signin",async function(req,res){
 });
 
 
-userRouter.get("/blogs", userMiddleware, async function(req, res) {
-    const userId = req.userId;
-
+// This route is for previewing all posts (public)
+userRouter.get("/preview", async (req, res) => {
     try {
-        const blogs = await postModel.find({ creatorId: userId }); // fetch all fields
-
-        res.json({
-            msg: 'Fetched all posts created by the user',
-            blogs
-        });
-    } catch (error) {
-        res.status(500).json({
-            msg: 'Error while fetching posts',
-            error: error.message
-        });
+        const blogs = await postModel.find({});
+        res.json({ blogs });
+    } catch (e) {
+        res.status(500).json({ msg: 'Error fetching posts' });
     }
 });
 
